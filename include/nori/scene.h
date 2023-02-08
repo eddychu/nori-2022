@@ -55,6 +55,8 @@ public:
     /// Return a pointer to the scene's sample generator
     Sampler *getSampler() { return m_sampler; }
 
+
+
     /// Return a reference to an array containing all meshes
     const std::vector<Mesh *> &getMeshes() const { return m_meshes; }
 

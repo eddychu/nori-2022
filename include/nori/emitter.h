@@ -25,6 +25,14 @@ NORI_NAMESPACE_BEGIN
 /**
  * \brief Superclass of all emitters
  */
+
+struct EmitterQueryRecord {
+    Point3f position;
+    Point3f target;
+    Point3f normal;
+};
+
+
 class Emitter : public NoriObject {
 public:
 
@@ -32,6 +40,15 @@ public:
      * \brief Return the type of object (i.e. Mesh/Emitter/etc.) 
      * provided by this instance
      * */
+    virtual Color3f le(const Point3f& p, const Point3f& n, const Point3f& target) const {
+		return Color3f(0.0f);
+    }
+
+    virtual Color3f le(const Ray3f& ray) const {
+		return Color3f(0.0f);
+    }
+
+
     EClassType getClassType() const { return EEmitter; }
 };
 

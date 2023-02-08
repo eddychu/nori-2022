@@ -21,6 +21,7 @@
 #include <nori/object.h>
 #include <nori/frame.h>
 #include <nori/bbox.h>
+#include <nori/dpdf.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -32,6 +33,14 @@ NORI_NAMESPACE_BEGIN
  * as well as two local coordinate frames (one that corresponds to the true
  * geometry, and one that is used for shading computations).
  */
+
+struct SampleRecord {
+    Point3f p;
+    Normal3f n;
+    float pdf;
+};
+
+
 struct Intersection {
     /// Position of the surface intersection
     Point3f p;
@@ -163,6 +172,11 @@ public:
      * */
     EClassType getClassType() const { return EMesh; }
 
+    SampleRecord sample(Sampler* sampler) const;
+
+    void buildDiscretePDF();
+
+
 protected:
     /// Create an empty mesh
     Mesh();
@@ -176,6 +190,9 @@ protected:
     BSDF         *m_bsdf = nullptr;      ///< BSDF of the surface
     Emitter    *m_emitter = nullptr;     ///< Associated emitter, if any
     BoundingBox3f m_bbox;                ///< Bounding box of the mesh
+    DiscretePDF m_discretePDF;
+
+    float m_surfaceArea;
 };
 
 NORI_NAMESPACE_END

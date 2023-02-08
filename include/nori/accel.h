@@ -28,7 +28,21 @@ NORI_NAMESPACE_BEGIN
  * The current implementation falls back to a brute force loop
  * through the geometry.
  */
-class Accel {
+class Accel
+{
+
+    struct OctreeNode
+    {
+        BoundingBox3f bbox;
+        std::vector<std::pair<int, int>> triangles;
+        std::vector<int> children;
+    };
+
+    struct Octree
+    {
+        std::vector<OctreeNode> nodes;
+    };
+
 public:
     /**
      * \brief Register a triangle mesh for inclusion in the acceleration
@@ -36,7 +50,8 @@ public:
      *
      * This function can only be used before \ref build() is called
      */
-    void addMesh(Mesh *mesh);
+    void
+    addMesh(Mesh *mesh);
 
     /// Build the acceleration data structure (currently a no-op)
     void build();
@@ -65,9 +80,15 @@ public:
      */
     bool rayIntersect(const Ray3f &ray, Intersection &its, bool shadowRay) const;
 
+    void buildOctree(int nodeIndex, std::vector<std::pair<int, int>>& triangles, int depth);
+
+    bool rayIntersectOctree(const Ray3f &ray, Intersection &its, bool shadowRay,  uint32_t *faceIndex) const;
+
 private:
-    Mesh         *m_mesh = nullptr; ///< Mesh (only a single one for now)
-    BoundingBox3f m_bbox;           ///< Bounding box of the entire scene
+    std::vector<Mesh *> m_meshes; ///< List of meshes
+    BoundingBox3f m_bbox;   ///< Bounding box of the entire scene
+    Octree m_octree;
+    int max_depth = 10;
 };
 
 NORI_NAMESPACE_END

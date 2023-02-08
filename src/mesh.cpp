@@ -38,6 +38,7 @@ void Mesh::activate() {
         m_bsdf = static_cast<BSDF *>(
             NoriObjectFactory::createInstance("diffuse", PropertyList()));
     }
+    buildDiscretePDF();
 }
 
 float Mesh::surfaceArea(uint32_t index) const {
@@ -163,5 +164,43 @@ std::string Intersection::toString() const {
         mesh ? mesh->toString() : std::string("null")
     );
 }
+
+
+SampleRecord Mesh::sample(Sampler* sampler) const {
+    SampleRecord result;
+    auto triangleIndex = m_discretePDF.sample(sampler->next1D());
+    auto sampler2D = sampler->next2D();
+    auto sq = std::sqrt(1.0f - sampler2D.x());
+    auto a = 1.0f - sq;
+    auto b = sampler2D.y() * sq;
+    auto c = 1.0f - a - b;
+    Point3f v1 = m_V.col(m_F(0, triangleIndex));
+    Point3f  v2 = m_V.col(m_F(1, triangleIndex));
+    Point3f  v3 = m_V.col(m_F(2, triangleIndex));
+    result.p = a * v1 +
+               b * v2 +
+               c * v3 ;
+    if (m_N.size() > 0) {
+        result.n = a * m_N.col(m_F(0, triangleIndex)) +
+                   b * m_N.col(m_F(1, triangleIndex)) +
+                   c * m_N.col(m_F(2, triangleIndex));
+        result.n.normalize();
+    } else {
+        result.n = (v2 - v1).cross(v3 - v1);
+        result.n.normalize();
+    }
+
+    result.pdf = 1.0f / m_surfaceArea;
+    return result;
+}
+
+
+void Mesh::buildDiscretePDF() {
+    m_discretePDF.clear();
+    for (uint32_t i = 0; i < m_F.cols(); ++i)
+        m_discretePDF.append(surfaceArea(i));
+    m_surfaceArea = m_discretePDF.normalize();
+}
+
 
 NORI_NAMESPACE_END
